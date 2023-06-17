@@ -6,12 +6,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// OnboardNs
+// @Tags Namespace
+// @Summary onboard a namespace
+// @Description Creates in Dell ECS: a namespace, a IAM user RW and a IAM user RO and store their secret access keys in Vault
+// @Accept json
+// @Produce json
+// @param ns body model.Namespace true "the namespace to onboard"
+// @Router /namespace/onboard [post]
 func OnboardNs(ctx *gin.Context) {
 	var ns model.Namespace
 	if err := ctx.BindJSON(&ns); err != nil {
 		ctx.AbortWithError(400, err)
+		return
 	}
-
+	path := "/namespace/onboard"
+	status, err := service.ReqVault("POST", path, ns, nil)
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, err.Error())
+	}
 }
 
 func MigrateNs(ctx *gin.Context) {
@@ -22,7 +35,8 @@ func MigrateNs(ctx *gin.Context) {
 }
 
 func Test(ctx *gin.Context) {
-	if err := service.ReqVault("GET", "/sys/policies/acl?list=true", nil, nil); err != nil {
-		ctx.AbortWithError(500, err)
+	stat, err := service.ReqVault("GET", "/sys/policies/acl?list=true", nil, nil)
+	if stat != 200 {
+		ctx.AbortWithError(stat, err)
 	}
 }

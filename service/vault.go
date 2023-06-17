@@ -10,29 +10,32 @@ import (
 	"net/http"
 )
 
+const objectStore = "/v1/object-store"
+
 var (
 	vault_url = "http://127.0.0.1:8200"
 	client    = *http.DefaultClient
 )
 
 func OnboardNs(ns model.Namespace) error {
+
 	return nil
 }
 
-func ReqVault(method, path string, data any, obj any) error {
-	path = vault_url + path
+func ReqVault(method, path string, data any, obj any) (int, error) {
+	path = vault_url + objectStore + path
 	var req *http.Request
 	if data != nil {
 		payload, _ := json.Marshal(data)
 		tmp, err := http.NewRequest(method, path, bytes.NewBuffer(payload))
 		if err != nil {
-			return err
+			return 500, err
 		}
 		req = tmp
 	} else {
 		tmp, err := http.NewRequest(method, path, nil)
 		if err != nil {
-			return err
+			return 500, err
 		}
 		req = tmp
 	}
@@ -44,21 +47,21 @@ func ReqVault(method, path string, data any, obj any) error {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return 500, err
 	}
 
 	defer resp.Body.Close()
 	bodyByte, err := io.ReadAll(resp.Body)
 	slog.Info(string(bodyByte))
 	if resp.StatusCode > 300 {
-		return errors.New(resp.Status + " " + string(bodyByte))
+		return resp.StatusCode, errors.New(string(bodyByte))
 	}
 
 	if len(bodyByte) > 0 && obj != nil {
 		if err = json.Unmarshal(bodyByte, &obj); err != nil {
-			return err
+			return 500, err
 		}
 	}
-	return nil
+	return 200, nil
 
 }

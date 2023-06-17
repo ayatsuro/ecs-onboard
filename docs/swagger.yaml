@@ -1,0 +1,35 @@
+basePath: /v1
+definitions:
+  model.Namespace:
+    properties:
+      namespace:
+        type: string
+      username:
+        type: string
+    required:
+    - namespace
+    - username
+    type: object
+info:
+  contact: {}
+paths:
+  /namespace/onboard:
+    post:
+      consumes:
+      - application/json
+      description: 'Creates in Dell ECS: a namespace, a IAM user RW and a IAM user
+        RO and store their secret access keys in Vault'
+      parameters:
+      - description: the namespace to onboard
+        in: body
+        name: ns
+        required: true
+        schema:
+          $ref: '#/definitions/model.Namespace'
+      produces:
+      - application/json
+      responses: {}
+      summary: onboard a namespace
+      tags:
+      - Namespace
+swagger: "2.0"
