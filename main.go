@@ -19,8 +19,12 @@ func main() {
 	})
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	v1 := r.Group("/v1")
-	v1.POST("/namespace/onboard", handler.OnboardNs)
-	v1.POST("/namespace/migrate", handler.MigrateNs)
+	v1.POST("/namespace/onboard", handler.OnboardNamespace)
+	v1.POST("/namespace/migrate/:namespace", handler.MigrateNamespace)
+	v1.DELETE("namespace/onboard/:namespace", handler.DeleteNamespace)
+	v1.POST("/brid/onboard", handler.OnboardBrid)
+	v1.POST("/iamuser/onboard", handler.OnboardIamUser)
+	v1.DELETE("/iamuser/:username", handler.DeleteIamUser)
 	v1.GET("/test", handler.Test)
 
 	if err := r.Run("0.0.0.0:8081"); err != nil {

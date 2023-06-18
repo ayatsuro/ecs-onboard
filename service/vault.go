@@ -2,7 +2,6 @@ package service
 
 import (
 	"bytes"
-	"ecs-onboard/model"
 	"encoding/json"
 	"errors"
 	"github.com/gookit/slog"
@@ -16,11 +15,6 @@ var (
 	vault_url = "http://127.0.0.1:8200"
 	client    = *http.DefaultClient
 )
-
-func OnboardNs(ns model.Namespace) error {
-
-	return nil
-}
 
 func ReqVault(method, path string, data any, obj any) (int, error) {
 	path = vault_url + objectStore + path
