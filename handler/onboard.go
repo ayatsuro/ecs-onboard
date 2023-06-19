@@ -118,7 +118,7 @@ func OnboardIamUser(ctx *gin.Context) {
 // @Router /iamuser/{username} [delete]
 func DeleteIamUser(ctx *gin.Context) {
 	user := ctx.Param("username")
-	path := "/iam-user/" + user
+	path := "/role/" + user
 	status, err := service.ReqVault("DELETE", path, nil, nil)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
