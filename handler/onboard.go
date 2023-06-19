@@ -23,7 +23,8 @@ func OnboardNamespace(ctx *gin.Context) {
 	path := "/namespace/onboard"
 	status, err := service.ReqVault("POST", path, ns, nil)
 	if status != 200 {
-		ctx.AbortWithStatusJSON(status, err.Error())
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+		return
 	}
 }
 
@@ -36,10 +37,14 @@ func OnboardNamespace(ctx *gin.Context) {
 // @param ns path string true "the namespace to migrate"
 // @Router /namespace/migrate/{namespace} [post]
 func MigrateNamespace(ctx *gin.Context) {
-	var ns model.Namespace
-	if err := ctx.BindJSON(&ns); err != nil {
-		ctx.AbortWithError(400, err)
+	ns := ctx.Param("namespace")
+	path := "/namespace/migrate/" + ns
+	status, err := service.ReqVault("POST", path, ns, nil)
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+		return
 	}
+
 }
 
 // DeleteNamespace
@@ -50,7 +55,13 @@ func MigrateNamespace(ctx *gin.Context) {
 // @param ns path string true "the namespace to delete"
 // @Router /namespace/onboard/{namespace} [delete]
 func DeleteNamespace(ctx *gin.Context) {
-
+	ns := ctx.Param("namespace")
+	path := "/namespace/onboard/" + ns
+	status, err := service.ReqVault("DELETE", path, ns, nil)
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 // OnboardBrid
@@ -62,9 +73,16 @@ func DeleteNamespace(ctx *gin.Context) {
 // @param brid body model.Brid true "the user to onboard"
 // @Router /bird/onboard [post]
 func OnboardBrid(ctx *gin.Context) {
-	var brid model.Brid
-	if err := ctx.BindJSON(&brid); err != nil {
+	var user model.IamUser
+	if err := ctx.BindJSON(&user); err != nil {
 		ctx.AbortWithError(400, err)
+		return
+	}
+	// check brid existence in SF dump users
+	path := "/iam-user"
+	status, err := service.ReqVault("POST", path, user, nil)
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
 }
@@ -83,6 +101,12 @@ func OnboardIamUser(ctx *gin.Context) {
 		ctx.AbortWithError(400, err)
 		return
 	}
+	path := "/iam-user"
+	status, err := service.ReqVault("POST", path, user, nil)
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 // DeleteIamUser
@@ -93,7 +117,13 @@ func OnboardIamUser(ctx *gin.Context) {
 // @param brid path string true "the user to delete"
 // @Router /iamuser/{username} [delete]
 func DeleteIamUser(ctx *gin.Context) {
-
+	user := ctx.Param("username")
+	path := "/iam-user/" + user
+	status, err := service.ReqVault("DELETE", path, nil, nil)
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func Test(ctx *gin.Context) {
