@@ -19,8 +19,8 @@ type VaultResponse struct {
 	Data map[string]interface{} `json:"data"`
 }
 
-func CreatePolicy(role string) (int, error) {
-	path := "object-store/" + role
+func CreatePolicy(policy string) (int, error) {
+	path := "object-store/" + policy
 	payload := map[string]string{
 		"name":   path,
 		"policy": fmt.Sprintf(`{"path": { %q: {"capabilities": ["read"] }}}`, path),

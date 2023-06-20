@@ -5,6 +5,7 @@ import (
 	"ecs-onboard/service"
 	"github.com/gin-gonic/gin"
 	"regexp"
+	"strings"
 )
 
 const objectStore = "/object-store"
@@ -23,8 +24,16 @@ func OnboardNamespace(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
 		return
 	}
+	if ns.SafeId == "" {
+		safeId, _, _ := strings.Cut(ns.Namespace, "-")
+		ns.SafeId = safeId
+	}
+
+	// check there is a safe v4
+	// talk to vault regionally
+
 	// onboard namespace
-	var onboarded model.OnboardedNamespace
+	var onboarded model.RoleName
 	path := objectStore + "/namespace/onboard"
 	status, err := service.ReqVault("POST", path, ns, &onboarded)
 	if status != 200 {
@@ -32,7 +41,7 @@ func OnboardNamespace(ctx *gin.Context) {
 		return
 	}
 	// create policy for role
-	status, err = service.CreatePolicy(onboarded.ToRoleName())
+	status, err = service.CreatePolicy(onboarded.RoleName)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
@@ -51,10 +60,18 @@ func OnboardNamespace(ctx *gin.Context) {
 func MigrateNamespace(ctx *gin.Context) {
 	ns := ctx.Param("namespace")
 	path := objectStore + "/namespace/migrate/" + ns
-	status, err := service.ReqVault("POST", path, ns, nil)
+	var roles model.RoleNames
+	status, err := service.ReqVault("POST", path, ns, &roles)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
+	}
+	for _, roleName := range roles.RoleNames {
+		status, err = service.CreatePolicy(roleName)
+		if status != 200 {
+			ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 }
@@ -70,10 +87,14 @@ func DeleteNamespace(ctx *gin.Context) {
 	ns := ctx.Param("namespace")
 	path := objectStore + "/namespace/onboard/" + ns
 	status, err := service.ReqVault("DELETE", path, ns, nil)
+	// delete policies
+	// delete jwt if brid
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
+	// deelte policies
+	// delete jwt
 }
 
 // OnboardBrid
@@ -103,6 +124,8 @@ func OnboardBrid(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
+	//create policy
+	// create jwt
 }
 
 // OnboardIamUser
@@ -125,6 +148,7 @@ func OnboardIamUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
+	// create policy
 }
 
 // DeleteIamUser
