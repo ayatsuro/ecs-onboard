@@ -4,7 +4,10 @@ import (
 	"ecs-onboard/model"
 	"ecs-onboard/service"
 	"github.com/gin-gonic/gin"
+	"regexp"
 )
+
+const objectStore = "/object-store"
 
 // OnboardNamespace
 // @Tags Namespace
@@ -17,15 +20,24 @@ import (
 func OnboardNamespace(ctx *gin.Context) {
 	var ns model.Namespace
 	if err := ctx.BindJSON(&ns); err != nil {
-		ctx.AbortWithError(400, err)
+		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	path := "/namespace/onboard"
-	status, err := service.ReqVault("POST", path, ns, nil)
+	// onboard namespace
+	var onboarded model.OnboardedNamespace
+	path := objectStore + "/namespace/onboard"
+	status, err := service.ReqVault("POST", path, ns, &onboarded)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
+	// create policy for role
+	status, err = service.CreatePolicy(onboarded.ToRoleName())
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
 }
 
 // MigrateNamespace
@@ -38,7 +50,7 @@ func OnboardNamespace(ctx *gin.Context) {
 // @Router /namespace/migrate/{namespace} [post]
 func MigrateNamespace(ctx *gin.Context) {
 	ns := ctx.Param("namespace")
-	path := "/namespace/migrate/" + ns
+	path := objectStore + "/namespace/migrate/" + ns
 	status, err := service.ReqVault("POST", path, ns, nil)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
@@ -56,7 +68,7 @@ func MigrateNamespace(ctx *gin.Context) {
 // @Router /namespace/onboard/{namespace} [delete]
 func DeleteNamespace(ctx *gin.Context) {
 	ns := ctx.Param("namespace")
-	path := "/namespace/onboard/" + ns
+	path := objectStore + "/namespace/onboard/" + ns
 	status, err := service.ReqVault("DELETE", path, ns, nil)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
@@ -75,11 +87,17 @@ func DeleteNamespace(ctx *gin.Context) {
 func OnboardBrid(ctx *gin.Context) {
 	var user model.IamUser
 	if err := ctx.BindJSON(&user); err != nil {
-		ctx.AbortWithError(400, err)
+		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
 		return
 	}
+	var validBrid = regexp.MustCompile(`^[a-zA-Z]\d{8}$`)
+	if !validBrid.MatchString(user.Username) {
+		ctx.AbortWithStatusJSON(400, gin.H{"error": "invalid brid (1 letter followed by 8 digits)"})
+		return
+	}
+
 	// check brid existence in SF dump users
-	path := "/iam-user"
+	path := objectStore + "/iam-user"
 	status, err := service.ReqVault("POST", path, user, nil)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
@@ -98,10 +116,10 @@ func OnboardBrid(ctx *gin.Context) {
 func OnboardIamUser(ctx *gin.Context) {
 	var user model.IamUser
 	if err := ctx.BindJSON(&user); err != nil {
-		ctx.AbortWithError(400, err)
+		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	path := "/iam-user"
+	path := objectStore + "/iam-user"
 	status, err := service.ReqVault("POST", path, user, nil)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
@@ -118,12 +136,14 @@ func OnboardIamUser(ctx *gin.Context) {
 // @Router /iamuser/{username} [delete]
 func DeleteIamUser(ctx *gin.Context) {
 	user := ctx.Param("username")
-	path := "/role/" + user
+	path := objectStore + "/role/" + user
 	status, err := service.ReqVault("DELETE", path, nil, nil)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
+	// delete policy
+	// delete jwt if brid
 }
 
 func Test(ctx *gin.Context) {

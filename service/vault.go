@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gookit/slog"
 	"io"
 	"net/http"
 )
 
-const objectStore = "/v1/object-store"
-
 var (
-	vault_url = "http://127.0.0.1:8200"
+	vault_url = "http://127.0.0.1:8200/v1"
 	client    = *http.DefaultClient
 )
 
@@ -20,8 +19,17 @@ type VaultResponse struct {
 	Data map[string]interface{} `json:"data"`
 }
 
+func CreatePolicy(role string) (int, error) {
+	path := "object-store/" + role
+	payload := map[string]string{
+		"name":   path,
+		"policy": fmt.Sprintf(`{"path": { %q: {"capabilities": ["read"] }}}`, path),
+	}
+	return ReqVault("POST", "/sys/policies/acl/"+path, payload, nil)
+}
+
 func ReqVault(method, path string, data any, obj any) (int, error) {
-	path = vault_url + objectStore + path
+	path = vault_url + path
 	var req *http.Request
 	if data != nil {
 		payload, _ := json.Marshal(data)
@@ -56,7 +64,15 @@ func ReqVault(method, path string, data any, obj any) (int, error) {
 	}
 
 	if len(bodyByte) > 0 && obj != nil {
-		if err = json.Unmarshal(bodyByte, &obj); err != nil {
+		var vaultResponse VaultResponse
+		if err := json.Unmarshal(bodyByte, &vaultResponse); err != nil {
+			return 500, err
+		}
+		jsonByte, err := json.Marshal(vaultResponse.Data)
+		if err != nil {
+			return 500, err
+		}
+		if err := json.Unmarshal(jsonByte, &obj); err != nil {
 			return 500, err
 		}
 	}
