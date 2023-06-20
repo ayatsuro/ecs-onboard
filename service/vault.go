@@ -16,6 +16,10 @@ var (
 	client    = *http.DefaultClient
 )
 
+type VaultResponse struct {
+	Data map[string]interface{} `json:"data"`
+}
+
 func ReqVault(method, path string, data any, obj any) (int, error) {
 	path = vault_url + objectStore + path
 	var req *http.Request
