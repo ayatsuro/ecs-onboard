@@ -16,85 +16,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/bird/onboard": {
-            "post": {
-                "description": "In Dell ECS, creates a IAM user and an AccessKey. In Vault, stores the secret access keys and creates a JWT auth role bound to the Brid",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Brid"
-                ],
-                "summary": "onboard a brid to a namespace as IAM user",
-                "parameters": [
-                    {
-                        "description": "the user to onboard",
-                        "name": "brid",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.IamUser"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/iamuser/onboard": {
-            "post": {
-                "description": "In Dell ECS, creates a IAM user and an AccessKey. In Vault, stores the secret access keys and creates a JWT auth role bound to the Brid",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "IamUser"
-                ],
-                "summary": "onboard a IAM user in a namespace",
-                "parameters": [
-                    {
-                        "description": "the user to onboard",
-                        "name": "brid",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.IamUser"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/iamuser/{username}": {
-            "delete": {
-                "description": "In Dell ECS, deletes the IAM user. In Vault, deletes the role and the JWT auth role (if any)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "IamUser"
-                ],
-                "summary": "delete a IAM user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the user to delete",
-                        "name": "brid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/namespace/migrate": {
             "post": {
-                "description": "In Dell ECS, creates a IAM user (and AccessKey) for the Native users, creates a second AccessKey for existing IAM users. In Vault, stores the Secret Access Keys",
+                "description": "If the safe_id is omitted in the payload, it will be derived from the namespace name (first part of a split on '-')",
                 "consumes": [
                     "application/json"
                 ],
@@ -104,7 +28,7 @@ const docTemplate = `{
                 "tags": [
                     "Namespace"
                 ],
-                "summary": "migrates a namespace",
+                "summary": "Fetches all the users of an ECS namespace. For native users, creates a IAM user, an access key, stores it in a Vault role, creates a Vault policy. For IAM users, creates an access key, stores it in a Vault role, creates a Vault policy.",
                 "parameters": [
                     {
                         "description": "the namespace to migrate",
@@ -121,7 +45,7 @@ const docTemplate = `{
         },
         "/namespace/onboard": {
             "post": {
-                "description": "In Dell ECS, creates a namespace, a IAM user and an AccessKey. In Vault, stores the Secret Access Key",
+                "description": "If the safe_id is omitted in the payload, it will be derived from the namespace (first part of a split on '-')",
                 "consumes": [
                     "application/json"
                 ],
@@ -131,7 +55,7 @@ const docTemplate = `{
                 "tags": [
                     "Namespace"
                 ],
-                "summary": "onboards a namespace",
+                "summary": "Creates an IAM user, an access key, stores it in a Vault role, creates a Vault policy",
                 "parameters": [
                     {
                         "description": "the namespace to onboard",
@@ -141,6 +65,54 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/model.OnboardNamespace"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/user": {
+            "post": {
+                "description": "If the safe_id is omitted in the payload, it will be derived from the namespace name (first part of a split on '-')",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Creates a IAM user in an ECS namespace, creates an access key, stores it in a Vault role, creates a Vault policy. And if the username is a BRID, creates a JWT authrole.",
+                "parameters": [
+                    {
+                        "description": "the user to onboard",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.IamUser"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/user/{username}": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Deletes the IAM user, the Vault role and policy, and the JWT authrole if any",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the IAM user to delete",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}

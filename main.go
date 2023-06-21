@@ -17,13 +17,14 @@ func main() {
 		slog.Info(ctx.Request.Method, ctx.Request.URL)
 		ctx.Next()
 	})
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler, func(config *ginSwagger.Config) {
+		config.Title = "GoJump"
+	}))
 	v1 := r.Group("/v1")
 	v1.POST("/namespace/onboard", handler.OnboardNamespace)
 	v1.POST("/namespace/migrate", handler.MigrateNamespace)
-	v1.POST("/brid/onboard", handler.OnboardBrid)
-	v1.POST("/iamuser/onboard", handler.OnboardIamUser)
-	v1.DELETE("/iamuser/:username", handler.DeleteIamUser)
+	v1.POST("/user", handler.OnboardIamUser)
+	v1.DELETE("/user/:username", handler.DeleteIamUser)
 	v1.GET("/test", handler.Test)
 
 	if err := r.Run("0.0.0.0:8081"); err != nil {

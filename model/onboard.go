@@ -1,5 +1,9 @@
 package model
 
+import (
+	"regexp"
+)
+
 type OnboardNamespace struct {
 	Namespace string `json:"namespace" binding:"required"`
 	Username  string `json:"username"  binding:"required"`
@@ -17,10 +21,15 @@ type IamUser struct {
 	SafeId    string `json:"safe_id"`
 }
 
-type RoleNames struct {
-	RoleNames []string `json:"role_names"`
+func (u IamUser) IsBrid() bool {
+	var validBrid = regexp.MustCompile(`^[a-zA-Z]\d{8}$`)
+	return validBrid.MatchString(u.Username)
 }
 
-type RoleName struct {
-	RoleName string `json:"role_name"`
+type Roles struct {
+	Names []string `json:"role_names"`
+}
+
+type Role struct {
+	Name string `json:"role_name"`
 }
