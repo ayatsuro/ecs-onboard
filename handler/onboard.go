@@ -126,17 +126,21 @@ func OnboardIamUser(ctx *gin.Context) {
 // @Tags User
 // @Summary Deletes the IAM user, the Vault role and policy, and the JWT authrole if any
 // @Produce json
-// @param username path string true "the IAM user to delete"
-// @Router /user/{username} [delete]
+// @param roleName path string true "the role name, in the form <safeId>_<iamUserName> to delete"
+// @Router /user/{roleName} [delete]
 func DeleteIamUser(ctx *gin.Context) {
-	user := ctx.Param("username")
-	path := objectStore + "/role/" + user
+	roleName := ctx.Param("roleName")
+	path := objectStore + "/role/" + roleName
 	status, err := service.ReqVault("DELETE", path, nil, nil)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
-	//status, err = service.DeletePolicy()
+	status, err = service.DeletePolicy(roleName)
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+		return
+	}
 	// delete jwt if brid
 }
 

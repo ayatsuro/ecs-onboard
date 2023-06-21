@@ -24,7 +24,7 @@ func main() {
 	v1.POST("/namespace/onboard", handler.OnboardNamespace)
 	v1.POST("/namespace/migrate", handler.MigrateNamespace)
 	v1.POST("/user", handler.OnboardIamUser)
-	v1.DELETE("/user/:username", handler.DeleteIamUser)
+	v1.DELETE("/user/:roleName", handler.DeleteIamUser)
 	v1.GET("/test", handler.Test)
 
 	if err := r.Run("0.0.0.0:8081"); err != nil {
