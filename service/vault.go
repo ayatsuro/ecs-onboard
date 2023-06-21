@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"ecs-onboard/model"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,6 +27,24 @@ func CreatePolicy(policy string) (int, error) {
 		"policy": fmt.Sprintf(`{"path": { %q: {"capabilities": ["read"] }}}`, path),
 	}
 	return ReqVault("POST", "/sys/policies/acl/"+path, payload, nil)
+}
+
+func DeletePolicy(policy string) (int, error) {
+	path := "object-store/" + policy
+	return ReqVault("DELETE", "/sys/policies/acl/"+path, nil, nil)
+}
+
+func CreateJwtAuthRole(user model.IamUser) (int, error) {
+	//jwtRole := user.ToJwtAuthRole()
+	//path := "auth/jwt/role/" + ...
+	// return ReqVault("POST", path, jwtRole, nil)
+	return 200, nil
+}
+
+func DeleteJwtAuthRole(roleName string) (int, error) {
+	//path := "auth/jwt/role/" + roleName
+	// return ReqVault("DELETE", path, nil, nil)
+	return 200, nil
 }
 
 func ReqVault(method, path string, data any, obj any) (int, error) {

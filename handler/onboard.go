@@ -114,11 +114,11 @@ func OnboardIamUser(ctx *gin.Context) {
 		return
 	}
 	if user.IsBrid() {
-		//status, err = service.CreateJwtAuthRole(role.Name)
-		//if status != 200 {
-		//	ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
-		//	return
-		//}
+		status, err = service.CreateJwtAuthRole(user)
+		if status != 200 {
+			ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+			return
+		}
 	}
 }
 
@@ -136,7 +136,7 @@ func DeleteIamUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
-	// delete policy
+	//status, err = service.DeletePolicy()
 	// delete jwt if brid
 }
 
