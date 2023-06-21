@@ -87,34 +87,13 @@ func MigrateNamespace(ctx *gin.Context) {
 
 }
 
-// DeleteNamespace
-// @Tags Namespace
-// @Summary delete a namespace
-// @Description In ECS, deletes the namespace and associate users. In Vault, deletes the roles and JWT auth roles
-// @Produce json
-// @param ns path string true "the namespace to delete"
-// @Router /namespace/onboard/{namespace} [delete]
-func DeleteNamespace(ctx *gin.Context) {
-	ns := ctx.Param("namespace")
-	path := objectStore + "/namespace/roles/" + ns
-	status, err := service.ReqVault("DELETE", path, ns, nil)
-	// delete policies
-	// delete jwt if brid
-	if status != 200 {
-		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
-		return
-	}
-	// deelte policies
-	// delete jwt
-}
-
 // OnboardBrid
 // @Tags Brid
 // @Summary onboard a brid to a namespace as IAM user
 // @Description In Dell ECS, creates a IAM user and an AccessKey. In Vault, stores the secret access keys and creates a JWT auth role bound to the Brid
 // @Accept json
 // @Produce json
-// @param brid body model.Brid true "the user to onboard"
+// @param brid body model.IamUser true "the user to onboard"
 // @Router /bird/onboard [post]
 func OnboardBrid(ctx *gin.Context) {
 	var user model.IamUser

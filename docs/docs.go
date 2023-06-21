@@ -16,9 +16,85 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/namespace/onboard": {
+        "/bird/onboard": {
             "post": {
-                "description": "Creates in Dell ECS: a namespace, a IAM user RW and a IAM user RO and store their secret access keys in Vault",
+                "description": "In Dell ECS, creates a IAM user and an AccessKey. In Vault, stores the secret access keys and creates a JWT auth role bound to the Brid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Brid"
+                ],
+                "summary": "onboard a brid to a namespace as IAM user",
+                "parameters": [
+                    {
+                        "description": "the user to onboard",
+                        "name": "brid",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.IamUser"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/iamuser/onboard": {
+            "post": {
+                "description": "In Dell ECS, creates a IAM user and an AccessKey. In Vault, stores the secret access keys and creates a JWT auth role bound to the Brid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "IamUser"
+                ],
+                "summary": "onboard a IAM user in a namespace",
+                "parameters": [
+                    {
+                        "description": "the user to onboard",
+                        "name": "brid",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.IamUser"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/iamuser/{username}": {
+            "delete": {
+                "description": "In Dell ECS, deletes the IAM user. In Vault, deletes the role and the JWT auth role (if any)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "IamUser"
+                ],
+                "summary": "delete a IAM user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the user to delete",
+                        "name": "brid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/namespace/migrate": {
+            "post": {
+                "description": "In Dell ECS, creates a IAM user (and AccessKey) for the Native users, creates a second AccessKey for existing IAM users. In Vault, stores the Secret Access Keys",
                 "consumes": [
                     "application/json"
                 ],
@@ -28,7 +104,34 @@ const docTemplate = `{
                 "tags": [
                     "Namespace"
                 ],
-                "summary": "onboard a namespace",
+                "summary": "migrates a namespace",
+                "parameters": [
+                    {
+                        "description": "the namespace to migrate",
+                        "name": "ns",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.MigrateNamespace"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/namespace/onboard": {
+            "post": {
+                "description": "In Dell ECS, creates a namespace, a IAM user and an AccessKey. In Vault, stores the Secret Access Key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Namespace"
+                ],
+                "summary": "onboards a namespace",
                 "parameters": [
                     {
                         "description": "the namespace to onboard",
@@ -36,7 +139,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.Namespace"
+                            "$ref": "#/definitions/model.OnboardNamespace"
                         }
                     }
                 ],
@@ -45,7 +148,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.Namespace": {
+        "model.IamUser": {
             "type": "object",
             "required": [
                 "namespace",
@@ -53,6 +156,41 @@ const docTemplate = `{
             ],
             "properties": {
                 "namespace": {
+                    "type": "string"
+                },
+                "safe_id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.MigrateNamespace": {
+            "type": "object",
+            "required": [
+                "namespace"
+            ],
+            "properties": {
+                "namespace": {
+                    "type": "string"
+                },
+                "safe_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.OnboardNamespace": {
+            "type": "object",
+            "required": [
+                "namespace",
+                "username"
+            ],
+            "properties": {
+                "namespace": {
+                    "type": "string"
+                },
+                "safe_id": {
                     "type": "string"
                 },
                 "username": {
