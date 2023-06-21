@@ -16,10 +16,10 @@ const objectStore = "/object-store"
 // @Description In Dell ECS, creates a namespace, a IAM user and an AccessKey. In Vault, stores the Secret Access Key
 // @Accept json
 // @Produce json
-// @param ns body model.Namespace true "the namespace to onboard"
+// @param ns body model.OnboardNamespace true "the namespace to onboard"
 // @Router /namespace/onboard [post]
 func OnboardNamespace(ctx *gin.Context) {
-	var ns model.Namespace
+	var ns model.OnboardNamespace
 	if err := ctx.BindJSON(&ns); err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
 		return
@@ -28,7 +28,7 @@ func OnboardNamespace(ctx *gin.Context) {
 		safeId, _, _ := strings.Cut(ns.Namespace, "-")
 		ns.SafeId = safeId
 	}
-
+	ns.SafeId = strings.ToLower(ns.SafeId)
 	// check there is a safe v4
 	// talk to vault regionally
 
@@ -55,11 +55,22 @@ func OnboardNamespace(ctx *gin.Context) {
 // @Description In Dell ECS, creates a IAM user (and AccessKey) for the Native users, creates a second AccessKey for existing IAM users. In Vault, stores the Secret Access Keys
 // @Accept json
 // @Produce json
-// @param ns path string true "the namespace to migrate"
-// @Router /namespace/migrate/{namespace} [post]
+// @param ns body model.MigrateNamespace true "the namespace to migrate"
+// @Router /namespace/migrate [post]
 func MigrateNamespace(ctx *gin.Context) {
-	ns := ctx.Param("namespace")
-	path := objectStore + "/namespace/migrate/" + ns
+	var ns model.MigrateNamespace
+	if err := ctx.BindJSON(&ns); err != nil {
+		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if ns.SafeId == "" {
+		safeId, _, _ := strings.Cut(ns.Namespace, "-")
+		ns.SafeId = safeId
+	}
+	ns.SafeId = strings.ToLower(ns.SafeId)
+	// check there is a safe v4
+	// talk to vault regionally
+	path := objectStore + "/namespace/migrate"
 	var roles model.RoleNames
 	status, err := service.ReqVault("POST", path, ns, &roles)
 	if status != 200 {

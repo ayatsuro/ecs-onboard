@@ -5,11 +5,9 @@ import (
 	"ecs-onboard/model"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gookit/slog"
 	"io"
 	"net/http"
-	"time"
 )
 
 var (
@@ -20,21 +18,41 @@ var (
 func main() {
 	//tc1_onboardNsNotFound()
 	//tc2_onboardNsWith1NativeUser()
-	d1, err := time.Parse(time.RFC3339, "2020-04-15T14:49:22Z")
+	//tc4_migrate_not_existing()
+	tc3_migrate_existing()
+
+}
+
+func tc4_migrate_not_existing() {
+	ns := model.MigrateNamespace{
+		Namespace: "ci45m-user-1key",
+	}
+	code, err := httpReq("POST", "/namespace/migrate", ns, nil)
 	if err != nil {
 		slog.Error(err)
 	}
-	d2, err := time.Parse(time.RFC3339, "2020-04-15T15:49:22Z")
+	if code != 200 {
+		slog.Error(code)
+	}
+}
+
+func tc3_migrate_existing() {
+	ns := model.MigrateNamespace{
+		Namespace: "ci45678-native-user-iam-user-1key",
+	}
+	code, err := httpReq("POST", "/namespace/migrate", ns, nil)
 	if err != nil {
 		slog.Error(err)
 	}
-	fmt.Println(d1.Before(d2))
+	if code != 200 {
+		slog.Error(code)
+	}
 }
 
 func tc2_onboardNsWith1NativeUser() {
 	slog.Info("test onboard namespace with 1 native user")
-	ns := model.Namespace{
-		Namespace: "ci12345-native-user-slo",
+	ns := model.OnboardNamespace{
+		Namespace: "ci12345-native-user",
 		Username:  "ns-native-user-us1",
 	}
 	code, err := httpReq("POST", "/namespace/onboard", ns, nil)
@@ -48,7 +66,7 @@ func tc2_onboardNsWith1NativeUser() {
 
 func tc1_onboardNsNotFound() {
 	slog.Info("test onboard namespace not found")
-	ns := model.Namespace{
+	ns := model.OnboardNamespace{
 		Namespace: "blah-glo",
 		Username:  "blah",
 	}

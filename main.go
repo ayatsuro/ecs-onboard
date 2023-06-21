@@ -20,7 +20,7 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	v1 := r.Group("/v1")
 	v1.POST("/namespace/onboard", handler.OnboardNamespace)
-	v1.POST("/namespace/migrate/:namespace", handler.MigrateNamespace)
+	v1.POST("/namespace/migrate", handler.MigrateNamespace)
 	v1.DELETE("namespace/onboard/:namespace", handler.DeleteNamespace)
 	v1.POST("/brid/onboard", handler.OnboardBrid)
 	v1.POST("/iamuser/onboard", handler.OnboardIamUser)
