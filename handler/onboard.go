@@ -96,7 +96,7 @@ func MigrateNamespace(ctx *gin.Context) {
 // @Router /namespace/onboard/{namespace} [delete]
 func DeleteNamespace(ctx *gin.Context) {
 	ns := ctx.Param("namespace")
-	path := objectStore + "/namespace/onboard/" + ns
+	path := objectStore + "/namespace/roles/" + ns
 	status, err := service.ReqVault("DELETE", path, ns, nil)
 	// delete policies
 	// delete jwt if brid

@@ -19,8 +19,22 @@ func main() {
 	//tc1_onboardNsNotFound()
 	//tc2_onboardNsWith1NativeUser()
 	//tc4_migrate_not_existing()
-	tc3_migrate_existing()
+	//tc3_migrate_existing()
+	//tc5_migrate_existing_2keys()
 
+}
+
+func tc5_migrate_existing_2keys() {
+	ns := model.MigrateNamespace{
+		Namespace: "ci898640-native-user-iam-user-2keys",
+	}
+	code, err := httpReq("POST", "/namespace/migrate", ns, nil)
+	if err != nil {
+		slog.Error(err)
+	}
+	if code != 200 {
+		slog.Error(code)
+	}
 }
 
 func tc4_migrate_not_existing() {
