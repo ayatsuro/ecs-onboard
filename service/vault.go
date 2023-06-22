@@ -52,6 +52,7 @@ func ReqVault(method, path string, data any, obj any) (int, error) {
 	var req *http.Request
 	if data != nil {
 		payload, _ := json.Marshal(data)
+		slog.Info(string(payload))
 		tmp, err := http.NewRequest(method, path, bytes.NewBuffer(payload))
 		if err != nil {
 			return 500, err

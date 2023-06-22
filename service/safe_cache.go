@@ -7,7 +7,7 @@ import (
 
 func CheckSafeId(obj any) bool {
 	completeSafeId(obj)
-	return false
+	return true
 }
 
 func completeSafeId(obj any) {

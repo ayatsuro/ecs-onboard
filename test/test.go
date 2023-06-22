@@ -21,7 +21,70 @@ func main() {
 	//tc4_migrate_not_existing()
 	//tc3_migrate_existing()
 	//tc5_migrate_existing_2keys()
+	//tc6_createIamUserNsNotFound()
+	//tc7_createIamUserUserAlreadyExists().
+	//tc8_createIamUser()
+	tc9_deleteIamUser()
+}
 
+func tc9_deleteIamUser() {
+	u := model.IamUser{
+		Username:  "test3",
+		Namespace: "ci12345-native-user",
+		SafeId:    "test",
+	}
+	code, err := httpReq("DELETE", "/user/"+u.RoleName(), nil, nil)
+	if err != nil {
+		slog.Error(err)
+	}
+	if code != 200 {
+		slog.Error(code)
+	}
+}
+
+func tc8_createIamUser() {
+	u := model.IamUser{
+		Username:  "test3",
+		Namespace: "ci12345-native-user",
+		SafeId:    "test",
+	}
+	code, err := httpReq("POST", "/user", u, nil)
+	if err != nil {
+		slog.Error(err)
+	}
+	if code != 200 {
+		slog.Error(code)
+	}
+}
+
+func tc7_createIamUserUserAlreadyExists() {
+	u := model.IamUser{
+		Username:  "test",
+		Namespace: "ci12345-native-user",
+		SafeId:    "test",
+	}
+	code, err := httpReq("POST", "/user", u, nil)
+	if err != nil {
+		slog.Error(err)
+	}
+	if code != 200 {
+		slog.Error(code)
+	}
+}
+
+func tc6_createIamUserNsNotFound() {
+	u := model.IamUser{
+		Username:  "test",
+		Namespace: "test",
+		SafeId:    "test",
+	}
+	code, err := httpReq("POST", "/user", u, nil)
+	if err != nil {
+		slog.Error(err)
+	}
+	if code != 200 {
+		slog.Error(code)
+	}
 }
 
 func tc5_migrate_existing_2keys() {

@@ -4,6 +4,7 @@ import (
 	"ecs-onboard/model"
 	"ecs-onboard/service"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 const objectStore = "/object-store"
@@ -101,7 +102,7 @@ func OnboardIamUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(400, gin.H{"error": "unknown safe " + user.SafeId})
 		return
 	}
-	path := objectStore + "/role"
+	path := objectStore + "/role/" + user.RoleName()
 	var role model.Role
 	status, err := service.ReqVault("POST", path, user, &role)
 	if status != 200 {
@@ -141,7 +142,14 @@ func DeleteIamUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
-	// delete jwt if brid
+	_, brid, _ := strings.Cut(roleName, "_")
+	if model.IsBrid(brid) {
+		status, err = service.DeleteJwtAuthRole(roleName)
+		if status != 200 {
+			ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+			return
+		}
+	}
 }
 
 func Test(ctx *gin.Context) {

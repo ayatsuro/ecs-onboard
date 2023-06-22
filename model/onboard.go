@@ -23,8 +23,12 @@ type IamUser struct {
 }
 
 func (u IamUser) IsBrid() bool {
+	return IsBrid(u.Username)
+}
+
+func IsBrid(name string) bool {
 	var validBrid = regexp.MustCompile(`^[a-zA-Z]\d{8}$`)
-	return validBrid.MatchString(u.Username)
+	return validBrid.MatchString(name)
 }
 
 func (u IamUser) ToJwtAuthRole() JwtAuthRole {
