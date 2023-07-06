@@ -10,7 +10,7 @@ import (
 const objectStore = "/object-store"
 
 // CreateRole
-// @Tags User
+// @Tags Role
 // @Summary Creates a IAM user in an ECS namespace, creates an access key, stores it in a Vault role, creates a Vault policy. And if the username is a BRID, creates a JWT authrole.
 // @Description If the safe_id is omitted in the payload, it will be derived from the namespace name (first part of a split on '-')
 // @Accept json
@@ -48,7 +48,7 @@ func CreateRole(ctx *gin.Context) {
 }
 
 // DeleteRole
-// @Tags User
+// @Tags Role
 // @Summary Deletes the IAM user, the Vault role and policy, and the JWT authrole if any
 // @Produce json
 // @param roleName path string true "the role name, in the form <safeId>_<iamUserName> to delete"
@@ -73,6 +73,22 @@ func DeleteRole(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 			return
 		}
+	}
+}
+
+// RotateRole
+// @Tags Role
+// @Summary Rotate the role: replaces the oldest AccessKey with a new one
+// @Produce json
+// @param roleName path string true "the role name, in the form <safeId>_<iamUserName> to rotate"
+// @Router /rotate-role/{roleName} [post]
+func RotateRole(ctx *gin.Context) {
+	roleName := ctx.Param("roleName")
+	path := objectStore + "/rotate-role/" + roleName
+	status, err := service.ReqVault("POST", path, nil, nil)
+	if status != 200 {
+		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
+		return
 	}
 }
 

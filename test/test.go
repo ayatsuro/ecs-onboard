@@ -21,6 +21,7 @@ func main() {
 	//tc2_createRoleUserHasAlreadyKeys()
 	//tc3_createRoleUserHasOneKey()
 	tc4_createRoleNoUser()
+	//tc6_rotateRole()
 	//tc5_deleteRole()
 }
 
@@ -31,6 +32,21 @@ func tc5_deleteRole() {
 		SafeId:    "test",
 	}
 	code, err := httpReq("DELETE", "/user/"+u.RoleName(), nil, nil)
+	if err != nil {
+		slog.Error(err)
+	}
+	if code != 200 {
+		slog.Error(code)
+	}
+}
+
+func tc6_rotateRole() {
+	u := model.Role{
+		Username:  "test3",
+		Namespace: "ci12345",
+		SafeId:    "test",
+	}
+	code, err := httpReq("POST", "/rotate-role/"+u.RoleName(), nil, nil)
 	if err != nil {
 		slog.Error(err)
 	}
