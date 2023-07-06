@@ -16,19 +16,16 @@ var (
 )
 
 func main() {
-	//tc1_onboardNsNotFound()
-	//tc2_onboardNsWith1NativeUser()
-	//tc4_migrate_not_existing()
-	//tc3_migrate_existing()
-	//tc5_migrate_existing_2keys()
-	//tc6_createIamUserNsNotFound()
-	//tc7_createIamUserUserAlreadyExists().
-	//tc8_createIamUser()
-	tc9_deleteIamUser()
+
+	//tc1_createRoleNsNotFound()
+	//tc2_createRoleUserHasAlreadyKeys()
+	//tc3_createRoleUserHasOneKey()
+	tc4_createRoleNoUser()
+	//tc5_deleteRole()
 }
 
-func tc9_deleteIamUser() {
-	u := model.IamUser{
+func tc5_deleteRole() {
+	u := model.Role{
 		Username:  "test3",
 		Namespace: "ci12345-native-user",
 		SafeId:    "test",
@@ -42,13 +39,13 @@ func tc9_deleteIamUser() {
 	}
 }
 
-func tc8_createIamUser() {
-	u := model.IamUser{
+func tc4_createRoleNoUser() {
+	u := model.Role{
 		Username:  "test3",
-		Namespace: "ci12345-native-user",
+		Namespace: "ci12345",
 		SafeId:    "test",
 	}
-	code, err := httpReq("POST", "/user", u, nil)
+	code, err := httpReq("POST", "/role", u, nil)
 	if err != nil {
 		slog.Error(err)
 	}
@@ -57,13 +54,13 @@ func tc8_createIamUser() {
 	}
 }
 
-func tc7_createIamUserUserAlreadyExists() {
-	u := model.IamUser{
-		Username:  "test",
-		Namespace: "ci12345-native-user",
+func tc3_createRoleUserHasOneKey() {
+	u := model.Role{
+		Username:  "iamUser1",
+		Namespace: "ci45678-iam-user-1key",
 		SafeId:    "test",
 	}
-	code, err := httpReq("POST", "/user", u, nil)
+	code, err := httpReq("POST", "/role", u, nil)
 	if err != nil {
 		slog.Error(err)
 	}
@@ -72,89 +69,34 @@ func tc7_createIamUserUserAlreadyExists() {
 	}
 }
 
-func tc6_createIamUserNsNotFound() {
-	u := model.IamUser{
+func tc2_createRoleUserHasAlreadyKeys() {
+	u := model.Role{
+		Username:  "iamUser2",
+		Namespace: "ci898640-iam-user-2keys",
+		SafeId:    "test",
+	}
+	code, err := httpReq("POST", "/role", u, nil)
+	if err != nil {
+		slog.Error(err)
+	}
+	if code != 200 {
+		slog.Error(code)
+	}
+}
+
+func tc1_createRoleNsNotFound() {
+	u := model.Role{
 		Username:  "test",
 		Namespace: "test",
 		SafeId:    "test",
 	}
-	code, err := httpReq("POST", "/user", u, nil)
+	code, err := httpReq("POST", "/role", u, nil)
 	if err != nil {
 		slog.Error(err)
 	}
 	if code != 200 {
 		slog.Error(code)
 	}
-}
-
-func tc5_migrate_existing_2keys() {
-	ns := model.MigrateNamespace{
-		Namespace: "ci898640-native-user-iam-user-2keys",
-	}
-	code, err := httpReq("POST", "/namespace/migrate", ns, nil)
-	if err != nil {
-		slog.Error(err)
-	}
-	if code != 200 {
-		slog.Error(code)
-	}
-}
-
-func tc4_migrate_not_existing() {
-	ns := model.MigrateNamespace{
-		Namespace: "ci45m-user-1key",
-	}
-	code, err := httpReq("POST", "/namespace/migrate", ns, nil)
-	if err != nil {
-		slog.Error(err)
-	}
-	if code != 200 {
-		slog.Error(code)
-	}
-}
-
-func tc3_migrate_existing() {
-	ns := model.MigrateNamespace{
-		Namespace: "ci45678-native-user-iam-user-1key",
-	}
-	code, err := httpReq("POST", "/namespace/migrate", ns, nil)
-	if err != nil {
-		slog.Error(err)
-	}
-	if code != 200 {
-		slog.Error(code)
-	}
-}
-
-func tc2_onboardNsWith1NativeUser() {
-	slog.Info("test onboard namespace with 1 native user")
-	ns := model.OnboardNamespace{
-		Namespace: "ci12345-native-user",
-		Username:  "ns-native-user-us1",
-	}
-	code, err := httpReq("POST", "/namespace/onboard", ns, nil)
-	if err != nil {
-		slog.Error(err)
-	}
-	if code != 200 {
-		slog.Error(code)
-	}
-}
-
-func tc1_onboardNsNotFound() {
-	slog.Info("test onboard namespace not found")
-	ns := model.OnboardNamespace{
-		Namespace: "blah-glo",
-		Username:  "blah",
-	}
-	code, err := httpReq("POST", "/namespace/onboard", ns, nil)
-	if err != nil {
-		slog.Error(err)
-	}
-	if code != 200 {
-		slog.Error(code)
-	}
-
 }
 
 func httpReq(method, path string, data any, obj any) (int, error) {

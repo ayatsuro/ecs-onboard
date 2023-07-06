@@ -11,6 +11,8 @@ import (
 	"net/http"
 )
 
+const objectStoreCreds = "object-store/creds/"
+
 var (
 	vault_url = "http://127.0.0.1:8200/v1"
 	client    = *http.DefaultClient
@@ -21,7 +23,7 @@ type VaultResponse struct {
 }
 
 func CreatePolicy(policy string) (int, error) {
-	path := "object-store/" + policy
+	path := objectStoreCreds + policy
 	payload := map[string]string{
 		"name":   path,
 		"policy": fmt.Sprintf(`{"path": { %q: {"capabilities": ["read"] }}}`, path),
@@ -30,11 +32,11 @@ func CreatePolicy(policy string) (int, error) {
 }
 
 func DeletePolicy(policy string) (int, error) {
-	path := "object-store/" + policy
+	path := objectStoreCreds + policy
 	return ReqVault("DELETE", "/sys/policies/acl/"+path, nil, nil)
 }
 
-func CreateJwtAuthRole(user model.IamUser) (int, error) {
+func CreateJwtAuthRole(user model.Role) (int, error) {
 	//jwtRole := user.ToJwtAuthRole()
 	//path := "auth/jwt/role/" + ...
 	// return ReqVault("POST", path, jwtRole, nil)

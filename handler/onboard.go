@@ -9,113 +9,37 @@ import (
 
 const objectStore = "/object-store"
 
-// OnboardNamespace
-// @Tags Namespace
-// @Summary Creates an IAM user, an access key, stores it in a Vault role, creates a Vault policy
-// @Description If the safe_id is omitted in the payload, it will be derived from the namespace (first part of a split on '-')
-// @Accept json
-// @Produce json
-// @param ns body model.OnboardNamespace true "the namespace to onboard"
-// @Router /namespace/onboard [post]
-func OnboardNamespace(ctx *gin.Context) {
-	var ns model.OnboardNamespace
-	if err := ctx.BindJSON(&ns); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
-		return
-	}
-	if ok := service.CheckSafeId(&ns); !ok {
-		ctx.AbortWithStatusJSON(400, gin.H{"error": "unknown safe " + ns.SafeId})
-		return
-	}
-	// check there is a safe v4
-	// talk to vault regionally
-
-	// onboard namespace
-	var role model.Role
-	path := objectStore + "/namespace/onboard"
-	status, err := service.ReqVault("POST", path, ns, &role)
-	if status != 200 {
-		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
-		return
-	}
-	// create policy for role
-	status, err = service.CreatePolicy(role.Name)
-	if status != 200 {
-		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
-		return
-	}
-
-}
-
-// MigrateNamespace
-// @Tags Namespace
-// @Summary Fetches all the users of an ECS namespace. For native users, creates a IAM user, an access key, stores it in a Vault role, creates a Vault policy. For IAM users, creates an access key, stores it in a Vault role, creates a Vault policy.
-// @Description If the safe_id is omitted in the payload, it will be derived from the namespace name (first part of a split on '-')
-// @Accept json
-// @Produce json
-// @param ns body model.MigrateNamespace true "the namespace to migrate"
-// @Router /namespace/migrate [post]
-func MigrateNamespace(ctx *gin.Context) {
-	var ns model.MigrateNamespace
-	if err := ctx.BindJSON(&ns); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
-		return
-	}
-	if ok := service.CheckSafeId(&ns); !ok {
-		ctx.AbortWithStatusJSON(400, gin.H{"error": "unknown safe " + ns.SafeId})
-		return
-	}
-	// check there is a safe v4
-	// talk to vault regionally
-	path := objectStore + "/namespace/migrate"
-	var roles model.Roles
-	status, err := service.ReqVault("POST", path, ns, &roles)
-	if status != 200 {
-		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
-		return
-	}
-	for _, roleName := range roles.Names {
-		status, err = service.CreatePolicy(roleName)
-		if status != 200 {
-			ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
-			return
-		}
-	}
-
-}
-
-// OnboardIamUser
+// CreateRole
 // @Tags User
 // @Summary Creates a IAM user in an ECS namespace, creates an access key, stores it in a Vault role, creates a Vault policy. And if the username is a BRID, creates a JWT authrole.
 // @Description If the safe_id is omitted in the payload, it will be derived from the namespace name (first part of a split on '-')
 // @Accept json
 // @Produce json
-// @param user body model.IamUser true "the user to onboard"
-// @Router /user [post]
-func OnboardIamUser(ctx *gin.Context) {
-	var user model.IamUser
-	if err := ctx.BindJSON(&user); err != nil {
+// @param role body model.Role true "the user to onboard"
+// @Router /role [post]
+func CreateRole(ctx *gin.Context) {
+	var role model.Role
+	if err := ctx.BindJSON(&role); err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if ok := service.CheckSafeId(&user); !ok {
-		ctx.AbortWithStatusJSON(400, gin.H{"error": "unknown safe " + user.SafeId})
+	if ok := service.CheckSafeId(role.GetSafeId()); !ok {
+		ctx.AbortWithStatusJSON(400, gin.H{"error": "unknown safe " + role.GetSafeId()})
 		return
 	}
-	path := objectStore + "/role/" + user.RoleName()
-	var role model.Role
-	status, err := service.ReqVault("POST", path, user, &role)
+	path := objectStore + "/role/" + role.RoleName()
+	status, err := service.ReqVault("POST", path, role, nil)
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
-	status, err = service.CreatePolicy(role.Name)
+	status, err = service.CreatePolicy(role.RoleName())
 	if status != 200 {
 		ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
-	if user.IsBrid() {
-		status, err = service.CreateJwtAuthRole(user)
+	if role.IsBrid() {
+		status, err = service.CreateJwtAuthRole(role)
 		if status != 200 {
 			ctx.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 			return
@@ -123,13 +47,13 @@ func OnboardIamUser(ctx *gin.Context) {
 	}
 }
 
-// DeleteIamUser
+// DeleteRole
 // @Tags User
 // @Summary Deletes the IAM user, the Vault role and policy, and the JWT authrole if any
 // @Produce json
 // @param roleName path string true "the role name, in the form <safeId>_<iamUserName> to delete"
-// @Router /user/{roleName} [delete]
-func DeleteIamUser(ctx *gin.Context) {
+// @Router /role/{roleName} [delete]
+func DeleteRole(ctx *gin.Context) {
 	roleName := ctx.Param("roleName")
 	path := objectStore + "/role/" + roleName
 	status, err := service.ReqVault("DELETE", path, nil, nil)

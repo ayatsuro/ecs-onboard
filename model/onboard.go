@@ -3,27 +3,26 @@ package model
 import (
 	"encoding/json"
 	"regexp"
+	"strings"
 )
 
-type OnboardNamespace struct {
-	Namespace string `json:"namespace" binding:"required"`
-	Username  string `json:"username"  binding:"required"`
-	SafeId    string `json:"safe_id"`
-}
-
-type MigrateNamespace struct {
-	Namespace string `json:"namespace" binding:"required"`
-	SafeId    string `json:"safe_id"`
-}
-
-type IamUser struct {
+type Role struct {
 	Username  string `json:"username" binding:"required"`
 	Namespace string `json:"namespace" binding:"required"`
 	SafeId    string `json:"safe_id"`
 }
 
-func (u IamUser) IsBrid() bool {
+func (u Role) IsBrid() bool {
 	return IsBrid(u.Username)
+}
+
+func (u Role) GetSafeId() string {
+	if u.SafeId != "" {
+		return u.SafeId
+	}
+	// skylight naming convention
+	safeId, _, _ := strings.Cut(u.Namespace, "-")
+	return strings.ToLower(safeId)
 }
 
 func IsBrid(name string) bool {
@@ -31,21 +30,21 @@ func IsBrid(name string) bool {
 	return validBrid.MatchString(name)
 }
 
-func (u IamUser) ToJwtAuthRole() JwtAuthRole {
+func (u Role) ToJwtAuthRole() JwtAuthRole {
 	bc, _ := json.Marshal(&map[string]string{"BRID": u.Username})
 	return JwtAuthRole{
 		BoundAudiences: []string{"OBJECT_STORE", "CSM_DEV", "CSM_INT"},
 		BoundClaims:    bc,
 		RoleType:       "jwt",
-		TokenPolicies:  []string{"object-store/" + u.RoleName()},
+		TokenPolicies:  []string{"object-store/creds/" + u.RoleName()},
 		TokenTtl:       0,
 		TokenMaxTtl:    0,
 		UserClaim:      "sub",
 	}
 }
 
-func (u IamUser) RoleName() string {
-	return u.SafeId + "_" + u.Username
+func (u Role) RoleName() string {
+	return u.GetSafeId() + "_" + u.Username
 }
 
 type JwtAuthRole struct {
@@ -57,12 +56,4 @@ type JwtAuthRole struct {
 	TokenTtl        int32           `json:"token_ttl"`
 	TokenMaxTtl     int32           `json:"token_max_ttl"`
 	UserClaim       string          `json:"user_claim"`
-}
-
-type Roles struct {
-	Names []string `json:"role_names"`
-}
-
-type Role struct {
-	Name string `json:"role_name"`
 }

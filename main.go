@@ -21,10 +21,8 @@ func main() {
 		config.Title = "GoJump"
 	}))
 	v1 := r.Group("/v1")
-	v1.POST("/namespace/onboard", handler.OnboardNamespace)
-	v1.POST("/namespace/migrate", handler.MigrateNamespace)
-	v1.POST("/user", handler.OnboardIamUser)
-	v1.DELETE("/user/:roleName", handler.DeleteIamUser)
+	v1.POST("/role", handler.CreateRole)
+	v1.DELETE("/role/:roleName", handler.DeleteRole)
 	v1.GET("/test", handler.Test)
 
 	if err := r.Run("0.0.0.0:8081"); err != nil {
